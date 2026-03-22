@@ -88,16 +88,16 @@ After downloading, your directory should contain:
 
 ```
 models/
-├── ltx-2.3-22b-dev.safetensors                    # 44 GB — base model
-├── gemma-3-12b-it-qat-q4_0-unquantized/           # 6 GB — text encoder
+├── ltx-2.3-22b-dev.safetensors               
+├── gemma-3-12b-it-qat-q4_0-unquantized/       
 │   ├── config.json
 │   ├── model*.safetensors
 │   ├── tokenizer.model
 │   └── ...
-├── id-lora-celebvhq-ltx2.3/                       # 1.1 GB — ID-LoRA
+├── id-lora-celebvhq-ltx2.3/                      
 │   └── lora_weights.safetensors
-├── ltx-2.3-spatial-upscaler-x2-1.1.safetensors    # 1 GB — spatial upsampler (two-stage)
-└── ltx-2.3-22b-distilled-lora-384.safetensors      # 7.6 GB — distilled LoRA (two-stage)
+├── ltx-2.3-spatial-upscaler-x2-1.1.safetensors   
+└── ltx-2.3-22b-distilled-lora-384.safetensors     
 ```
 
 ### 3. Install the ltx packages
@@ -121,7 +121,7 @@ git clone <this-repo-url> comfyui-id-lora-ltx
 python ComfyUI/main.py
 ```
 
-Then open http://127.0.0.1:8188 in your browser. The five nodes will appear under the **ID-LoRA** category in the node menu.
+Then open http://127.0.0.1:8188 in your browser. The nodes will appear under the **ID-LoRA** category in the node menu.
 
 ### Example workflow templates
 
