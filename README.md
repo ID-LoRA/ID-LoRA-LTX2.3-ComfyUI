@@ -2,6 +2,8 @@
 
 ComfyUI custom nodes for **ID-LoRA-2.3** inference — audio+video generation with speaker identity transfer, built on top of LTX-2.3. Supports both **one-stage** (single resolution) and **two-stage** (2x spatial upsampling) pipelines.
 
+We are looking into integrating ID-LoRA with native ComfyUI support, stay tuned!
+
 ## Demo
 
 Two-stage output (max_resolution=1024, HQ mode, 242 frames @ 25fps):
