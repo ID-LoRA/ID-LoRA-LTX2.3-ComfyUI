@@ -73,7 +73,7 @@ git clone https://github.com/ID-LoRA/ID-LoRA.git
 
 ### 2. Download models
 
-Run the download script from the repository root so models end up where the nodes expect them:
+Run the download script from the repository root:
 
 ```bash
 bash ID-LoRA/ID-LoRA-2.3/scripts/download_models.sh models/
@@ -97,23 +97,45 @@ For two-stage, also download (included in the download script):
 
 > **Note:** Gemma requires accepting the license at https://huggingface.co/google/gemma-3-12b-it-qat-q4_0-unquantized and logging in with `huggingface-cli login` before downloading.
 
-After downloading, your directory should contain:
+### 3. Symlink models into ComfyUI
+
+The nodes use ComfyUI's standard model folder system. Create symlinks so ComfyUI can find the downloaded models (adjust the `models/` path if you downloaded elsewhere):
+
+```bash
+# Checkpoint
+ln -sf "$(pwd)/models/ltx-2.3-22b-dev.safetensors" ComfyUI/models/checkpoints/
+
+# LoRAs
+ln -sf "$(pwd)/models/id-lora-celebvhq-ltx2.3/lora_weights.safetensors" ComfyUI/models/loras/id-lora-celebvhq-ltx2.3.safetensors
+ln -sf "$(pwd)/models/id-lora-talkvid-ltx2.3/lora_weights.safetensors" ComfyUI/models/loras/id-lora-talkvid-ltx2.3.safetensors
+ln -sf "$(pwd)/models/ltx-2.3-22b-distilled-lora-384.safetensors" ComfyUI/models/loras/
+
+# Upscaler
+ln -sf "$(pwd)/models/ltx-2.3-spatial-upscaler-x2-1.1.safetensors" ComfyUI/models/upscale_models/
+
+# Text encoder
+ln -sf "$(pwd)/models/gemma-3-12b-it-qat-q4_0-unquantized" ComfyUI/models/text_encoders/
+```
+
+If you already have these models in ComfyUI's model directories (e.g. from other LTX nodes), the symlinks are not needed — the nodes will find them automatically via the dropdown selectors.
+
+After setup, ComfyUI's model directories should contain:
 
 ```
-models/
-├── ltx-2.3-22b-dev.safetensors               
-├── gemma-3-12b-it-qat-q4_0-unquantized/       
-│   ├── config.json
-│   ├── model*.safetensors
-│   ├── tokenizer.model
-│   └── ...
-├── id-lora-celebvhq-ltx2.3/                      
-│   └── lora_weights.safetensors
-├── ltx-2.3-spatial-upscaler-x2-1.1.safetensors   
-└── ltx-2.3-22b-distilled-lora-384.safetensors     
+ComfyUI/models/
+├── checkpoints/
+│   └── ltx-2.3-22b-dev.safetensors -> .../models/ltx-2.3-22b-dev.safetensors
+├── loras/
+│   ├── id-lora-celebvhq-ltx2.3.safetensors -> .../models/id-lora-celebvhq-ltx2.3/lora_weights.safetensors
+│   ├── id-lora-talkvid-ltx2.3.safetensors -> .../models/id-lora-talkvid-ltx2.3/lora_weights.safetensors
+│   └── ltx-2.3-22b-distilled-lora-384.safetensors -> .../models/ltx-2.3-22b-distilled-lora-384.safetensors
+├── upscale_models/
+│   └── ltx-2.3-spatial-upscaler-x2-1.1.safetensors -> .../models/ltx-2.3-spatial-upscaler-x2-1.1.safetensors
+└── text_encoders/
+    └── gemma-3-12b-it-qat-q4_0-unquantized -> .../models/gemma-3-12b-it-qat-q4_0-unquantized
 ```
 
-### 3. Install the ltx packages
+### 4. Install the ltx packages
 
 ```bash
 pip install -e ID-LoRA/ID-LoRA-2.3/packages/ltx-core
@@ -121,14 +143,14 @@ pip install -e ID-LoRA/ID-LoRA-2.3/packages/ltx-pipelines
 pip install -e ID-LoRA/ID-LoRA-2.3/packages/ltx-trainer
 ```
 
-### 4. Clone this repo into ComfyUI custom_nodes
+### 5. Clone this repo into ComfyUI custom_nodes
 
 ```bash
 cd ComfyUI/custom_nodes
 git clone <this-repo-url> comfyui-id-lora-ltx
 ```
 
-### 5. Start ComfyUI
+### 6. Start ComfyUI
 
 ```bash
 python ComfyUI/main.py
@@ -161,9 +183,9 @@ Loads the base LTX-2.3 checkpoint, Gemma text encoder, and ID-LoRA weights into 
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
-| `checkpoint_path` | String | `models/ltx-2.3-22b-dev.safetensors` | Path to LTX-2.3 checkpoint |
-| `text_encoder_path` | String | `models/gemma-3-12b-it-qat-q4_0-unquantized` | Path to Gemma text encoder directory |
-| `lora_path` | String | _(empty)_ | Path to ID-LoRA `.safetensors` |
+| `checkpoint_path` | Combo | _(auto-populated)_ | LTX-2.3 checkpoint from `ComfyUI/models/checkpoints/` |
+| `text_encoder_path` | String | _(empty = auto-detect)_ | Gemma text encoder directory. Leave empty to auto-detect from `ComfyUI/models/text_encoders/` |
+| `lora_path` | Combo | `none` | ID-LoRA `.safetensors` from `ComfyUI/models/loras/`, or `none` to skip |
 | `lora_strength` | Float | 1.0 | LoRA strength (0.0-2.0) |
 | `quantize` | Combo | `none` | `none`, `int8`, or `fp8` |
 | `stg_scale` | Float | 1.0 | Spatio-Temporal Guidance scale (0 disables) |
@@ -178,12 +200,12 @@ Loads the base checkpoint, text encoder, ID-LoRA, spatial upsampler, and distill
 
 | Input | Type | Default | Description |
 |-------|------|---------|-------------|
-| `checkpoint_path` | String | `models/ltx-2.3-22b-dev.safetensors` | Path to LTX-2.3 checkpoint |
-| `text_encoder_path` | String | `models/gemma-3-12b-it-qat-q4_0-unquantized` | Path to Gemma text encoder directory |
-| `lora_path` | String | _(empty)_ | Path to ID-LoRA `.safetensors` |
+| `checkpoint_path` | Combo | _(auto-populated)_ | LTX-2.3 checkpoint from `ComfyUI/models/checkpoints/` |
+| `text_encoder_path` | String | _(empty = auto-detect)_ | Gemma text encoder directory. Leave empty to auto-detect from `ComfyUI/models/text_encoders/` |
+| `lora_path` | Combo | `none` | ID-LoRA `.safetensors` from `ComfyUI/models/loras/`, or `none` to skip |
 | `lora_strength` | Float | 1.0 | LoRA strength (0.0-2.0) |
-| `upsampler_path` | String | `models/ltx-2.3-spatial-upscaler-x2-1.1.safetensors` | Path to spatial upsampler |
-| `distilled_lora_path` | String | `models/ltx-2.3-22b-distilled-lora-384.safetensors` | Path to distilled LoRA for stage 2 |
+| `upsampler_path` | Combo | _(auto-populated)_ | Spatial upsampler from `ComfyUI/models/upscale_models/` |
+| `distilled_lora_path` | Combo | `none` | Distilled LoRA from `ComfyUI/models/loras/`, or `none` to skip |
 | `quantize` | Combo | `none` | `none`, `int8`, or `fp8` |
 | `stg_scale` | Float | 1.0 | Spatio-Temporal Guidance scale (0 disables) |
 | `identity_guidance_scale` | Float | 3.0 | Identity guidance strength |
@@ -302,7 +324,7 @@ These options can be combined. For example, `int8` quantization + `max_resolutio
 
 ## Notes
 
-- **Model paths** can be relative or absolute. Relative paths are resolved from the repository root (3 levels above the custom node directory).
+- **Model paths** use ComfyUI's standard `models/` folder system. Models are selected via dropdown menus that scan `ComfyUI/models/checkpoints/`, `loras/`, `upscale_models/`, and `text_encoders/`. The text encoder path is a string field — leave it empty to auto-detect a Gemma directory from `text_encoders/`.
 - **Auto-resolution** (enabled by default) matches the first frame's aspect ratio while capping the long side at `max_resolution` (default 512px). To generate at higher resolution, increase `max_resolution` on the sampler node — the aspect ratio is always preserved. For the two-stage pipeline, this controls stage 1; the final output will be 2x that (e.g. `max_resolution=768` produces up to 1536px output).
 - **Two-stage VRAM**: Stage-1 models (transformer, audio encoder) are fully freed before loading stage-2 models. The video encoder is shared for upsampling then freed.
 - **HQ mode** (two-stage only): Uses the res2s second-order sampler instead of Euler in both stages for higher quality at the cost of speed.
